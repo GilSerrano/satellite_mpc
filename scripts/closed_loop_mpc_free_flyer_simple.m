@@ -9,6 +9,17 @@ check_acados_requirements()
 % initial state
 x0 = [0; 0; 0; 0; 0; 0; eps; eps; eps; 0; 0; 0];  % start at stable position
 
+% reference
+p_final = [0.5 0 -0.5]';
+ksi_final = [0 pi/4 0]';
+yref = zeros(6, 1);
+yref_e = zeros(6, 1);
+
+yref(1:3) = p_final;
+yref(4:6) = ksi_final;
+yref_e(1:3) = p_final;
+yref_e(4:6) = ksi_final;
+
 %% discretization
 h = 0.1; % sampling time = length of first shooting interval
 N = 20; % number of shooting intervals
@@ -36,7 +47,6 @@ plant_sim_method_num_stages = 3;
 plant_sim_method_num_steps = 3;
 
 %% model dynamics
-% model = pendulum_on_cart_model;
 model = free_flyer_simple;
 nx = model.nx;
 nu = model.nu;
@@ -53,21 +63,14 @@ ocp_model.set('sym_x', model.sym_x);
 ocp_model.set('sym_u', model.sym_u);
 ocp_model.set('sym_xdot', model.sym_xdot);
 
-% nonlinear-least squares cost
-ocp_model.set('cost_type', 'nonlinear_ls');
-ocp_model.set('cost_type_e', 'nonlinear_ls');
+% external cost
+ocp_model.set('cost_type', 'ext_cost');
+ocp_model.set('cost_type_e', 'ext_cost');
 
-ocp_model.set('cost_expr_y', model.cost_expr_y);
-ocp_model.set('cost_expr_y_e', model.cost_expr_y_e);
-
-% W_x = diag([1e2, 1e2, 1e-2, 1e-2]);
-% W_u = 1e-3;W_x = eye(nx); %diag([1e3, 1e3, 1e-2, 1e-2]);
-W_x = eye(6);
-% W_x(7:12,7:12) = 0.1*eye(6); 
-W = W_x;
-W_e = W_x;
-ocp_model.set('cost_W', W);
-ocp_model.set('cost_W_e', model.W_e);
+expr_ext_cost_e = ([ocp_model.model_struct.sym_x(1:3); ocp_model.model_struct.sym_x(7:9)] - yref)'* model.W_e * ([ocp_model.model_struct.sym_x(1:3); ocp_model.model_struct.sym_x(7:9)] - yref);
+expr_ext_cost = expr_ext_cost_e + ocp_model.model_struct.sym_u' * 0.1*model.W * ocp_model.model_struct.sym_u;
+ocp_model.set('cost_expr_ext_cost', expr_ext_cost);
+ocp_model.set('cost_expr_ext_cost_e', expr_ext_cost_e);
 
 % dynamics
 ocp_model.set('dyn_type', 'explicit');
@@ -125,7 +128,7 @@ sim_opts.set('num_steps', plant_sim_method_num_steps);
 sim = acados_sim(sim_model, sim_opts);
 
 %% Simulation
-N_sim = 50;
+N_sim = 100;
 x0 = [0; 0; 0; 0; 0; 0; eps; eps; eps; 0; 0; 0];  % start at stable position
 
 x_sim = zeros(nx, N_sim+1);
@@ -133,34 +136,10 @@ u_sim = zeros(nu, N_sim);
 
 x_sim(:,1) = x0;
 
-% time-variant reference: move the cart with constant velocity while
-% keeping the pendulum in upwards position
-% v_mean = 1;
-p_final = [0.5 0 -0.5]';
-ksi_final = [0 pi/4 0]';
-yref = zeros(6, 1);
-yref_e = zeros(6, 1);
-
-yref(1:3) = p_final;
-yref(4:6) = ksi_final;
-yref_e(1:3) = p_final;
-yref_e(4:6) = ksi_final;
-
 for i=1:N_sim
     % update initial state
     x0 = x_sim(:,i);
     ocp.set('constr_x0', x0);
-
-    % compute reference position on the nonuniform grid
-%     t = (i-1)*h;
-%     p_ref = (t + shooting_nodes)*v_mean;
-
-    for k=0:N-1
-%         yref(1) = p_ref(k+1);
-        ocp.set('cost_y_ref', yref, k);
-    end
-%     yref_e(1) = p_ref(k+1);
-    ocp.set('cost_y_ref_e', yref_e, N);
 
     % solve
     ocp.solve();
@@ -191,7 +170,6 @@ end
 %% Plots
 ts = linspace(0, N_sim*h, N_sim+1);
 States = {'p', 'v', 'ksi', 'wb'};
-% p_ref = ts*v_mean;
 
 for i=1:length(States)
     figure;

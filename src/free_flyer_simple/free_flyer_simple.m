@@ -3,7 +3,7 @@
 %   for free flyer satellites, e.g. Astrobee.
 %   The model paramenters (mass and inertia) were calculated using a CAD
 %   software (SolidEdge) for an aluminium cube satellite, with 50cm edge
-%   and a 0-joint arm of 20cm.
+%   and a 0-joint arm of 50cm.
 %   Uses Lie algebra and exponential coordinates to represent orientation.
 function model = free_flyer_simple()
 
@@ -68,6 +68,8 @@ W_x = eye(6); %diag([1e3, 1e3, 1e-2, 1e-2]);
 W_u = 0.1*eye(nu); %1e-2;
 expr_ext_cost_e = [sym_x(1:3); sym_x(7:9)]'* W_x * [sym_x(1:3); sym_x(7:9)];
 expr_ext_cost = expr_ext_cost_e + sym_u' * W_u * sym_u;
+model.cost_expr_ext_cost = expr_ext_cost;
+model.cost_expr_ext_cost_e = expr_ext_cost_e;
 % nonlinear least sqares
 cost_expr_y = [eye(3) zeros(3,9); zeros(3,6) eye(3) zeros(3)]*sym_x;
 model.cost_expr_y_e = [eye(3) zeros(3,9); zeros(3,6) eye(3) zeros(3)]*sym_x;
