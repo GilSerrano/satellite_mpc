@@ -1,2 +1,2 @@
 # Do not include build folder and files
-build/*
+*/build/*

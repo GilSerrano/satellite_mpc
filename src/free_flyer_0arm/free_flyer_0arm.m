@@ -66,7 +66,7 @@ r33_dot = r31*wb(2) - r32*wb(1);
 R = [r11 r12 r13; r21 r22 r23; r31 r32 r33];
 
 expr_f_expl = vertcat(v, ... % p_dot
-                      M * u1, ... % v_dot
+                      (1/M) * u1, ... % v_dot
                       v + R * Skew_wb * P_ee, ... % pee_dot
                       r11_dot, ... 
                       r21_dot, ... 
