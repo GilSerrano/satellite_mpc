@@ -75,8 +75,12 @@ ocp_model.set('sym_xdot', model.sym_xdot);
 ocp_model.set('cost_type', 'ext_cost');
 ocp_model.set('cost_type_e', 'ext_cost');
 
-expr_ext_cost_e = (ocp_model.model_struct.sym_x(7:18) - yref)'* model.W_e * (ocp_model.model_struct.sym_x(7:18) - yref);
-expr_ext_cost = expr_ext_cost_e + ocp_model.model_struct.sym_u' * 0.1*eye(6) * ocp_model.model_struct.sym_u;
+costQ = [1*eye(3), zeros(3,9); zeros(9,3) 1*eye(9)];
+costQv = 100*eye(3);
+costQw = 50*eye(3);
+costR = 1*eye(6);
+expr_ext_cost_e = (ocp_model.model_struct.sym_x(7:18) - yref)'* costQ * (ocp_model.model_struct.sym_x(7:18) - yref) + (ocp_model.model_struct.sym_x(4:6))' * costQv * (ocp_model.model_struct.sym_x(4:6)) + (ocp_model.model_struct.sym_x(19:21))' * costQw * (ocp_model.model_struct.sym_x(19:21));
+expr_ext_cost = expr_ext_cost_e + ocp_model.model_struct.sym_u' * costR * ocp_model.model_struct.sym_u;
 ocp_model.set('cost_expr_ext_cost', expr_ext_cost);
 ocp_model.set('cost_expr_ext_cost_e', expr_ext_cost_e);
 
@@ -136,7 +140,8 @@ sim_opts.set('num_steps', plant_sim_method_num_steps);
 sim = acados_sim(sim_model, sim_opts);
 
 %% Simulation
-N_sim = 100;
+t_sim = 100;
+N_sim = t_sim/h;
 x0 = [0; 0; 0; 0; 0; 0; 0.5; 0; 0; 1; 0; 0; 0; 1; 0; 0; 0; 1; 0; 0; 0];  % start at stable position
 
 x_sim = zeros(nx, N_sim+1);
