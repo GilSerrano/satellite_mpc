@@ -66,11 +66,10 @@ ocp_model.set('sym_xdot', model.sym_xdot);
 ocp_model.set('cost_type', 'ext_cost');
 ocp_model.set('cost_type_e', 'ext_cost');
 
-% costQ = [1*eye(3), zeros(3); zeros(3) 1*eye(3)];
-costQ = 10*eye(6);
-costQv = 1*eye(3);
+costQ = [1*eye(3), zeros(3); zeros(3) 10*eye(3)];
+costQv = 100*eye(3);
 costR = 1*eye(6);
-expr_ext_cost_e = ([ocp_model.model_struct.sym_x(7:9); ocp_model.model_struct.sym_x(19:21)] - yref)'* costQ * ([ocp_model.model_struct.sym_x(7:9); ocp_model.model_struct.sym_x(19:21)] - yref);% + (ocp_model.model_struct.sym_x(4:6))' * costQv * (ocp_model.model_struct.sym_x(4:6));
+expr_ext_cost_e = ([ocp_model.model_struct.sym_x(7:9); ocp_model.model_struct.sym_x(19:21)] - yref)'* costQ * ([ocp_model.model_struct.sym_x(7:9); ocp_model.model_struct.sym_x(19:21)] - yref) + (ocp_model.model_struct.sym_x(4:6))' * costQv * (ocp_model.model_struct.sym_x(4:6));
 expr_ext_cost = expr_ext_cost_e + ocp_model.model_struct.sym_u' * costR * ocp_model.model_struct.sym_u;
 ocp_model.set('cost_expr_ext_cost', expr_ext_cost);
 ocp_model.set('cost_expr_ext_cost_e', expr_ext_cost_e);
