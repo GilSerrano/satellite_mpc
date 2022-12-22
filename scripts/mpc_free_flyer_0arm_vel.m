@@ -7,8 +7,9 @@ check_acados_requirements()
 x0 = [0; 0; 0; 0; 0; 0; 0.5; 0; 0; 1; 0; 0; 0; 1; 0; 0; 0; 1; 0; 0; 0];  % start at stable position
 
 % reference
-pee_final = [1 0 0]';
-wb_final = [1 0 0]';
+pee_final = [0 1 0]';
+wb_x_ref = 1; % rotation in the end can only be around the x-axis (axis with arm)
+wb_final = wb_x_ref*[1 0 0]';
 % 
 % yref = wb_final;
 % yref_e = wb_final;
@@ -219,14 +220,15 @@ for i = 1:N_sim+1
     R_sim(2,3,i) = x_sim(17,i);
     R_sim(3,3,i) = x_sim(18,i);
     determ(i) = det(R_sim(:,:,i));
-    euler(:,i) = rotm2eul(R_sim(:,:,i)); % [yaw pitch roll]
+    euler_aux = rotm2eul(R_sim(:,:,i)); % [yaw pitch roll]
+    euler(:,i) = flip(euler_aux); % [roll pitch yaw]
 end
 
 % Rotation reference
 figure;
-plot(ts, euler(3,:), 'color', [0 0.4470 0.7410]);hold on;
+plot(ts, euler(1,:), 'color', [0 0.4470 0.7410]);hold on;
 plot(ts, euler(2,:), 'color', [0.8500 0.3250 0.0980]);
-plot(ts, euler(1,:), 'color', [0.9290 0.6940 0.1250]);
+plot(ts, euler(3,:), 'color', [0.9290 0.6940 0.1250]);
 ylabel('Orientation'); xlabel('t [s]');
 legend('roll', 'pitch', 'yaw', 'location', 'best');
 grid on;
