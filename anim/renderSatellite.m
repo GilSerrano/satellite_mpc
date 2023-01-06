@@ -1,4 +1,4 @@
-function [sat_h,traj_h] = renderSatellite(V,F,p,ang,sat_h,traj_h)
+function [sat_h,traj_h] = renderSatellite(V,F,p,ang,sat_h,traj_h, view_vector)
                                  
     V = rotate(V,ang);
     V = translate(V,p');
@@ -9,7 +9,7 @@ function [sat_h,traj_h] = renderSatellite(V,F,p,ang,sat_h,traj_h)
     hold on;
     sat_h = patch('Vertices', V', 'Faces', F, 'FaceColor','#808080');
 %     view(3);
-    view([1 2 1]);
+    view(view_vector);
     
     else
         set(sat_h,'Vertices',V','Faces',F);

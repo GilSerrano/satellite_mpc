@@ -17,9 +17,10 @@ grid on;
 
 sat_h = [];
 traj_h = [];
+view_vector = [1 2 1]
 for k = 1:size(sat_pos,2)
     
-    [sat_h, traj_h] = renderSatellite(satV, satF, sat_pos(:,k), sat_ang(:,k),sat_h,traj_h);
+    [sat_h, traj_h] = renderSatellite(satV, satF, sat_pos(:,k), sat_ang(:,k), sat_h, traj_h, view_vector);
     
     axis(2.5*[-1, 1, -1, 1, -1, 1]);
 %     axis([sat_pos(1,k)-1.5, sat_pos(1,k)+1.5, sat_pos(2,k)-0.5, sat_pos(2,k)+0.5, sat_pos(3,k)-1.5, sat_pos(3,k)+1.5]);
